@@ -47,6 +47,7 @@ public class SecurityConfiguration {
 
                     req.requestMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll();
                     req.requestMatchers("/connect").permitAll();
+                    req.requestMatchers("/topic", "/topic/**", "/ws").permitAll();
                     req.anyRequest().authenticated();
                 })
                 .build();

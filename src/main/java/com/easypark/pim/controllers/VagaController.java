@@ -2,6 +2,7 @@ package com.easypark.pim.controllers;
 
 import com.easypark.pim.dtos.vagas.VagaDTO;
 import com.easypark.pim.dtos.vagas.VagaUpdateDTO;
+import com.easypark.pim.infra.WebSocketConfig;
 import com.easypark.pim.services.vagas.VagaGetAllService;
 import com.easypark.pim.services.vagas.VagaGetByNumVagaService;
 import com.easypark.pim.services.vagas.VagaGetVeiculoAtualService;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +38,12 @@ public class VagaController {
     @Autowired
     private VagaGetVeiculoAtualService vagaGetVeiculoAtualService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+
+
     @GetMapping
     @Operation(summary = "Listar Vagas",
             description ="Listar Vagas",
@@ -57,7 +66,14 @@ public class VagaController {
             tags = {"Vagas"})
     @Transactional
     public ResponseEntity<VagaDTO> update(@RequestBody @Valid VagaUpdateDTO data, @RequestParam int numVaga){
-        return new ResponseEntity<>(vagaUpdateService.update(data, numVaga), HttpStatus.OK);
+        VagaDTO updatedVaga = vagaUpdateService.update(data, numVaga);
+
+        // Verifica se as vagas estão sendo enviadas via WebSocket
+        List<VagaDTO> listaAtualizada = vagaGetAllService.getAll();
+        logger.info("🔄 Enviando atualização para WebSocket: " + listaAtualizada);
+        messagingTemplate.convertAndSend("/topic/vagas", listaAtualizada);
+
+        return new ResponseEntity<>(updatedVaga, HttpStatus.OK);
     }
 
     @GetMapping("/{numeroVaga}/veiculo-atual")
