@@ -10,11 +10,15 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import org.springframework.data.domain.Pageable;
 import java.util.List;
 
 @RestController
@@ -56,8 +60,8 @@ public class EntradaSaidaController {
     @Operation(summary = "Listar Entradas/Saídas",
             description ="Registrar Entrada/Saída",
             tags = {"Registros Entrada/Saída"})
-    public ResponseEntity<List<EntradaSaidaDTO>> getAll(){
-        return new ResponseEntity<>(entradaSaidaGetAllService.getAll(), HttpStatus.OK);
+    public ResponseEntity<Page<EntradaSaidaDTO>> getAll(@PageableDefault(size = 10) Pageable pageable){
+        return new ResponseEntity<>(entradaSaidaGetAllService.getAll(pageable), HttpStatus.OK);
     }
 
     @PutMapping("/{numero_vaga}")
