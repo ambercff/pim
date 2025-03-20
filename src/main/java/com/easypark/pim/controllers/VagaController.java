@@ -41,9 +41,6 @@ public class VagaController {
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
-
-
     @GetMapping
     @Operation(summary = "Listar Vagas",
             description ="Listar Vagas",
@@ -70,7 +67,6 @@ public class VagaController {
 
         // Verifica se as vagas estão sendo enviadas via WebSocket
         List<VagaDTO> listaAtualizada = vagaGetAllService.getAll();
-        logger.info("🔄 Enviando atualização para WebSocket: " + listaAtualizada);
         messagingTemplate.convertAndSend("/topic/vagas", listaAtualizada);
 
         return new ResponseEntity<>(updatedVaga, HttpStatus.OK);

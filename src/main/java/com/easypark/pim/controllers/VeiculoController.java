@@ -25,7 +25,6 @@ public class VeiculoController {
             tags = {"Veículos"})
     public ResponseEntity<VeiculoMotoristaDTO> getInformationsByPlaca(@RequestParam String placa){
         return new ResponseEntity<>(informationsGetByPlacaService.getInformationsByPlaca(placa), HttpStatus.OK);
-
     }
 
 }

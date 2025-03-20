@@ -20,6 +20,7 @@ public class VagaUpdateServiceImpl implements VagaUpdateService {
         Vaga vaga = vagaRespository.findByNumeroVaga(numVaga);
         if(vaga != null){
             vaga.setStatusVaga(data.statusVaga());
+            vagaRespository.save(vaga);
             return new VagaDTO(vaga);
         }
         throw new GenericsNotFoundException("Vaga não encontrada!");

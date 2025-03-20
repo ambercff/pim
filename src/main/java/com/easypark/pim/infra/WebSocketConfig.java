@@ -18,13 +18,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic");
         config.setApplicationDestinationPrefixes("/app");
-        logger.info("✅ WebSocket Broker Configurado!"); // Adiciona log para verificar se foi iniciado corretamente
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*");
-        logger.info("✅ Endpoint WebSocket /ws registrado!");
     }
 }

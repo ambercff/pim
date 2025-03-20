@@ -8,6 +8,7 @@ import com.easypark.pim.exceptions.GenericsNotFoundException;
 import com.easypark.pim.repositories.EntradaSaidaRepository;
 import com.easypark.pim.services.vagas.VagaGetVeiculoAtualService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service

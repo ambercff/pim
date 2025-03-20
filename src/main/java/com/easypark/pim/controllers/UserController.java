@@ -4,6 +4,7 @@ import com.easypark.pim.dtos.user.UserRoleDTO;
 import com.easypark.pim.dtos.user.UserAuthenticationDTO;
 import com.easypark.pim.dtos.user.UserCreateDTO;
 import com.easypark.pim.dtos.user.UserDTO;
+import com.easypark.pim.entities.User;
 import com.easypark.pim.services.authentication.TokenBlacklistService;
 import com.easypark.pim.services.user.UserGetAllService;
 import com.easypark.pim.services.user.UserLoginService;
@@ -16,6 +17,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -91,4 +93,13 @@ public class UserController {
 
         return ResponseEntity.noContent().build(); // Retorna 204 No Content
     }
+
+    @GetMapping("/userinfo")
+    @Operation(summary = "Get Info",
+            description ="Get Info",
+            tags = {"Usuários"})
+    public UserDTO getUserInfo(@AuthenticationPrincipal User user){
+        return new UserDTO(user);
+    }
+
 }

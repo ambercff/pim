@@ -2,11 +2,9 @@ package com.easypark.pim.controllers;
 
 import com.easypark.pim.dtos.entrada_saida.EntradaSaidaCreateDTO;
 import com.easypark.pim.dtos.entrada_saida.EntradaSaidaDTO;
+import com.easypark.pim.dtos.entrada_saida.EntradaSaidaDeleteDTO;
 import com.easypark.pim.dtos.entrada_saida.EntradaSaidaUpdateDTO;
-import com.easypark.pim.services.entrada_saida.EntradaSaidaGetAllService;
-import com.easypark.pim.services.entrada_saida.EntradaSaidaGetByVagaService;
-import com.easypark.pim.services.entrada_saida.EntradaSaidaSaveService;
-import com.easypark.pim.services.entrada_saida.EntradaSaidaUpdateHoraService;
+import com.easypark.pim.services.entrada_saida.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
@@ -14,6 +12,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.util.List;
@@ -23,23 +22,34 @@ import java.util.List;
 @SecurityRequirement(name= "bearer-key")
 public class EntradaSaidaController {
     @Autowired
-    private EntradaSaidaSaveService entradaSaidaSaveService;
+    EntradaSaidaSaveService entradaSaidaSaveService;
 
     @Autowired
-    private EntradaSaidaGetAllService entradaSaidaGetAllService;
+    EntradaSaidaGetAllService entradaSaidaGetAllService;
 
     @Autowired
-    private EntradaSaidaUpdateHoraService entradaSaidaUpdateHoraService;
+    EntradaSaidaUpdateHoraService entradaSaidaUpdateHoraService;
 
     @Autowired
-    private EntradaSaidaGetByVagaService entradaSaidaGetByVagaService;
+    EntradaSaidaGetByVagaService entradaSaidaGetByVagaService;
+
+    @Autowired
+    EntradaSaidaDeleteService entradaSaidaDeleteService;
+
+    @Autowired
+    SimpMessagingTemplate messagingTemplate;
 
     @PostMapping
     @Operation(summary = "Registrar Entrada/Saída",
             description ="Registrar Entrada/Saída",
             tags = {"Registros Entrada/Saída"})
     public ResponseEntity<?> save(@RequestBody @Valid EntradaSaidaCreateDTO data, UriComponentsBuilder uriBuilder){
-        return new ResponseEntity<>(entradaSaidaSaveService.save(data), HttpStatus.OK);
+        EntradaSaidaDTO entradaSaidaDTO = entradaSaidaSaveService.save(data);
+
+        List<EntradaSaidaDTO> listaAtualizada = entradaSaidaGetAllService.getAll();
+        messagingTemplate.convertAndSend("/topic/entradasSaidas", listaAtualizada);
+
+        return new ResponseEntity<>(entradaSaidaDTO, HttpStatus.OK);
     }
 
     @GetMapping
@@ -56,14 +66,33 @@ public class EntradaSaidaController {
             tags = {"Registros Entrada/Saída"})
     @Transactional
     public ResponseEntity<EntradaSaidaDTO> updateHora(@PathVariable int numero_vaga, @RequestBody EntradaSaidaUpdateDTO data){
-        return new ResponseEntity<>(entradaSaidaUpdateHoraService.updateHoraSaida(data, numero_vaga), HttpStatus.OK);
+        EntradaSaidaDTO entradaSaidaDTO = entradaSaidaUpdateHoraService.updateHoraSaida(data, numero_vaga);
+
+        List<EntradaSaidaDTO> listaAtualizada = entradaSaidaGetAllService.getAll();
+        messagingTemplate.convertAndSend("/topic/entradasSaidas", listaAtualizada);
+        return new ResponseEntity<>(entradaSaidaDTO, HttpStatus.OK);
     }
 
     @GetMapping("/{numero_vaga}")
-    @Operation(summary = "Registrar Hora de Saída",
-            description ="Registrar Hora de Saída",
+    @Operation(summary = "Buscar por número da vaga",
+            description ="Buscar por número da vaga",
             tags = {"Registros Entrada/Saída"})
     public ResponseEntity<EntradaSaidaDTO> getByNumVaga(@PathVariable int numero_vaga){
         return new ResponseEntity<>(entradaSaidaGetByVagaService.getByVaga(numero_vaga), HttpStatus.OK);
     }
+
+    @DeleteMapping
+    @Operation(summary = "Excluir por veículo e hora de entrada",
+            description ="Excluir por veículo e hora de entrada",
+            tags = {"Registros Entrada/Saída"})
+    public ResponseEntity<String> deleteEntradaSaida(@RequestBody EntradaSaidaDeleteDTO data){
+        String response = entradaSaidaDeleteService.deleteEntradaSaida(data);
+
+        List<EntradaSaidaDTO> listaAtualizada = entradaSaidaGetAllService.getAll();
+
+        messagingTemplate.convertAndSend("/topic/entradasSaidas", listaAtualizada);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
 }
