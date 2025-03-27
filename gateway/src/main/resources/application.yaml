@@ -1,0 +1,97 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: gateway
+
+  # Configura��o do cliente OAuth2 para se registrar com o provedor de identidade Azure.
+
+  security:
+    oauth2:
+      client:
+        registration:
+          azure:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope: openid, profile, email
+
+            redirect-uri: http://localhost:5173/callback  # Necess�rio ser a mesma cadastrada na Azure
+            provider: azure
+
+        # Configura��o do provedor de identidade Azure.
+
+        provider:
+          azure:
+            issuer-uri: ${ISSUER_URI} # Mesmo presente no Secured-Service
+            authorization-uri: ${AUTH_URI}
+            token-uri: ${TOKEN_URI}
+            jwk-set-uri: ${JWK_SET_URI}
+
+  cloud:
+    gateway:
+
+      # Define as rotas do gateway.
+
+      routes:
+        - id: entradaSaida
+          uri: http://localhost:9000 # URI para onde a requisi��o ser� roteada (URI do Secured-Service)
+          predicates: # A rota ser� usada para requisi��es com o caminho /resource.
+            - Path=/entradaSaida/**
+          filters:
+            - name: TokenRelay
+            - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:5173
+            - AddResponseHeader=Access-Control-Allow-Methods, GET, POST, PUT, DELETE, OPTIONS
+            - AddResponseHeader=Access-Control-Allow-Headers, Authorization, Content-Type
+        - id: topic/entradaSaidas
+          uri: http://localhost:9000 # URI para onde a requisi��o ser� roteada (URI do Secured-Service)
+          predicates: # A rota ser� usada para requisi��es com o caminho /resource.
+            - Path=/topic/entradaSaidas
+          filters:
+            - name: TokenRelay
+            - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:5173
+            - AddResponseHeader=Access-Control-Allow-Methods, GET, POST, PUT, DELETE, OPTIONS
+            - AddResponseHeader=Access-Control-Allow-Headers, Authorization, Content-Type
+
+
+        - id: vagas
+          uri: http://localhost:9000 # URI para onde a requisi��o ser� roteada (URI do Secured-Service)
+          predicates: # A rota ser� usada para requisi��es com o caminho /resource.
+            - Path=/vagas/**
+          filters:
+            - name: TokenRelay
+            - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:5173
+            - AddResponseHeader=Access-Control-Allow-Methods, GET, POST, PUT, DELETE, OPTIONS
+            - AddResponseHeader=Access-Control-Allow-Headers, Authorization, Content-Type
+
+        - id: topic/vagas
+          uri: http://localhost:9000 # URI para onde a requisi��o ser� roteada (URI do Secured-Service)
+          predicates: # A rota ser� usada para requisi��es com o caminho /resource.
+            - Path=/topic/vagas
+          filters:
+            - name: TokenRelay
+            - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:5173
+            - AddResponseHeader=Access-Control-Allow-Methods, GET, POST, PUT, DELETE, OPTIONS
+            - AddResponseHeader=Access-Control-Allow-Headers, Authorization, Content-Type
+
+        - id: veiculos
+          uri: http://localhost:9000 # URI para onde a requisi��o ser� roteada (URI do Secured-Service)
+          predicates: # A rota ser� usada para requisi��es com o caminho /resource.
+            - Path=/veiculos/**
+          filters:
+            - name: TokenRelay
+            - AddResponseHeader=Access-Control-Allow-Origin, http://localhost:5173
+            - AddResponseHeader=Access-Control-Allow-Methods, GET, POST, PUT, DELETE, OPTIONS
+            - AddResponseHeader=Access-Control-Allow-Headers, Authorization, Content-Type
+        - id: ws
+          uri: ws://localhost:9000
+          predicates:
+            - Path=/ws
+# Logs mais detalhados para acompanhar o processo pelo terminal!
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.cloud.gateway.filter.factory.TokenRelayGatewayFilterFactory: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security.oauth2: DEBUG
